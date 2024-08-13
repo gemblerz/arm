@@ -1,1 +1,4 @@
-python-periphery
+# for Google Coral dev board GPIO access
+# python-periphery
+# for the Adafruit AW9523 GPIO expander
+adafruit-circuitpython-aw9523
