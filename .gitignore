@@ -24,3 +24,6 @@ go.work.sum
 # Python
 __pycache__
 *.pyc
+
+# data folder
+data

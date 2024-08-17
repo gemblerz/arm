@@ -1,0 +1,7 @@
+# Adafruit E-ink library (e.g., 2.13'' Thinkink)
+# https://docs.circuitpython.org/projects/epd/en/latest/
+adafruit-circuitpython-epd==2.12.2
+
+# OLED device library (e.g., JMDO.96C)
+# https://luma-oled.readthedocs.io/en/latest/index.html
+luma.oled==3.13.0
