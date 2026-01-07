@@ -1,11 +1,13 @@
 package robot
 
 import (
+	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/gemblerz/arm/pkg/kinematics"
+	"github.com/gemblerz/arm/pkg/server"
 	"github.com/gemblerz/arm/pkg/stepper"
 )
 
@@ -57,16 +59,18 @@ type Arm struct {
 	isMoving         bool
 	currentOperation string
 	kinematicsSolver *kinematics.KinematicsSolver
+	wsServer         *server.Server
 }
 
 // NewArm creates a new robot arm with the specified joints
-func NewArm(joints []Joint, solver *kinematics.KinematicsSolver) *Arm {
+func NewArm(joints []Joint, solver *kinematics.KinematicsSolver, ws *server.Server) *Arm {
 	return &Arm{
 		joints:           joints,
 		homed:            false,
 		isMoving:         false,
 		currentOperation: "Initializing",
 		kinematicsSolver: solver,
+		wsServer:         ws,
 	}
 }
 
@@ -225,7 +229,11 @@ func (a *Arm) MoveJoint(jointID string, targetPosition int) error {
 	}
 	
 	fmt.Printf("Moving joint %s to position %d\n", jointID, targetPosition)
-	return joint.Motor.MoveTo(targetPosition)
+	err = joint.Motor.MoveTo(targetPosition)
+	if err == nil {
+		a.broadcastState()
+	}
+	return err
 }
 
 // MoveJoints moves multiple joints simultaneously to target positions
@@ -255,6 +263,7 @@ func (a *Arm) MoveJoints(targets map[string]int) error {
 		wg.Add(1)
 		go func(id string, pos int) {
 			defer wg.Done()
+			// We call MoveJoint directly, which will handle its own broadcast.
 			if err := a.MoveJoint(id, pos); err != nil {
 				errChan <- fmt.Errorf("joint %s: %w", id, err)
 			}
@@ -269,6 +278,7 @@ func (a *Arm) MoveJoints(targets map[string]int) error {
 		return err
 	}
 	
+	a.broadcastState() // Broadcast final state after all concurrent moves are done.
 	return nil
 }
 
@@ -374,6 +384,25 @@ func (a *Arm) GetStatus() string {
 	}
 
 	return status
+}
+
+func (a *Arm) broadcastState() {
+	if a.wsServer == nil {
+		return
+	}
+
+	positions := a.GetPositions()
+	state := map[string]interface{}{
+		"jointPositions": positions,
+	}
+
+	data, err := json.Marshal(state)
+	if err != nil {
+		fmt.Printf("Error marshalling robot state: %v\n", err)
+		return
+	}
+
+	a.wsServer.BroadcastMessage(data)
 }
 
 // UpdateDisplayStatus updates the robot status on the display
