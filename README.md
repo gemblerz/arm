@@ -15,6 +15,23 @@ A Go-based controller for operating a 6-degrees-of-freedom robot arm using stepp
 - 🛡️ **Safety Features**: Position limits, enable/disable controls, and error handling
 - 🌐 **GPIO Extender Support**: AW9523 I2C GPIO extender for pin expansion
 -  kinematics: Forward and inverse kinematics for Cartesian control (work in progress).
+- 🌐 **Web-Based Visualization**: Real-time 3D visualization of the robot arm using Three.js.
+
+## Web-Based Visualization
+
+This project includes a web-based 3D visualization tool to simulate the robot arm's movements in real-time. This is especially useful for developing and testing the kinematics functions without the physical hardware.
+
+### How to Use
+
+1.  **Run the application:**
+    ```bash
+    make interactive
+    ```
+2.  **Open your web browser:**
+    Navigate to `http://localhost:8080`.
+
+3.  **Control the arm:**
+    Use the commands in the interactive terminal (e.g., `move pan 1000`) and watch the 3D model move in your browser.
 
 ## SSD1306 Display Features
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -15,6 +16,7 @@ import (
 	"github.com/gemblerz/arm/pkg/display"
 	"github.com/gemblerz/arm/pkg/kinematics"
 	"github.com/gemblerz/arm/pkg/robot"
+	"github.com/gemblerz/arm/pkg/server"
 )
 
 // Global variables for interactive mode
@@ -22,6 +24,7 @@ var (
 	globalArm     *robot.Arm
 	globalDisplay *display.SSD1306
 	globalBoard   hardware.Board
+	wsServer      *server.Server
 	verbose       bool
 )
 
@@ -46,6 +49,20 @@ func main() {
 	if err := initializeSystem(*boardType, *configMode); err != nil {
 		log.Fatalf("Failed to initialize system: %v", err)
 	}
+
+	// Start WebSocket and HTTP file server
+	wsServer = server.NewServer()
+	go wsServer.Run()
+	http.HandleFunc("/ws", wsServer.HandleConnections)
+	fs := http.FileServer(http.Dir("./web"))
+	http.Handle("/", fs)
+
+	go func() {
+		log.Println("Starting web server on :8080")
+		if err := http.ListenAndServe(":8080", nil); err != nil {
+			log.Fatalf("Failed to start web server: %v", err)
+		}
+	}()
 
 	if *interactive {
 		fmt.Println("🎮 Starting interactive mode...")
@@ -138,7 +155,7 @@ func initializeSystem(boardType, configMode string) error {
 		{Theta: 0, D: 2, A: 0, Alpha: 0},            // Gripper
 	}
 	kinematicsSolver := kinematics.NewKinematicsSolver(dhParams)
-	globalArm = robot.NewArm(joints, kinematicsSolver)
+	globalArm = robot.NewArm(joints, kinematicsSolver, wsServer)
 
 	// Initialize display if available
 	displayConfig := display.DisplayConfig{
