@@ -14,6 +14,7 @@ A Go-based controller for operating a 6-degrees-of-freedom robot arm using stepp
 - 📊 **Status Monitoring**: Real-time status reporting for all joints and motors
 - 🛡️ **Safety Features**: Position limits, enable/disable controls, and error handling
 - 🌐 **GPIO Extender Support**: AW9523 I2C GPIO extender for pin expansion
+-  kinematics: Forward and inverse kinematics for Cartesian control (work in progress).
 
 ## SSD1306 Display Features
 
@@ -140,17 +141,8 @@ go build -o arm-controller ./cmd/arm
 # Development with mock hardware
 make run
 
-# Raspberry Pi
-make run-rpi
-sudo ./arm-controller -board=raspberry-pi
-
-# Google Coral Dev Board  
-make run-coral
-sudo ./arm-controller -board=coral
-
-# Generic Linux
-make run-linux
-sudo ./arm-controller -board=linux-gpio
+# Run in interactive mode
+make interactive
 ```
 
 ### Run as System Service
@@ -323,6 +315,11 @@ targets := map[string]int{
     "elbow": -150,
 }
 arm.MoveJoints(targets)
+
+### Cartesian Control (Work in Progress)
+// Move the end-effector to a specific (x, y, z) coordinate.
+// Note: This requires a fully implemented and calibrated kinematics solver.
+arm.MoveToXYZ(150.0, 50.0, 100.0)
 ```
 
 ## Configuration

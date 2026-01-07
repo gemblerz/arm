@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/c-bata/go-prompt"
 	"github.com/gemblerz/arm/internal/hardware"
 	"github.com/gemblerz/arm/pkg/display"
+	"github.com/gemblerz/arm/pkg/kinematics"
 	"github.com/gemblerz/arm/pkg/robot"
 )
 
@@ -124,8 +126,19 @@ func initializeSystem(boardType, configMode string) error {
 
 	fmt.Printf("\nCreated %d joints for robot arm\n\n", len(joints))
 
-	// Create robot arm
-	globalArm = robot.NewArm(joints)
+	// Create robot arm with kinematics solver
+	// Define placeholder DH parameters for a generic 6-DOF arm.
+	// These should be replaced with the actual dimensions of the robot.
+	dhParams := []kinematics.DHParameter{
+		{Theta: 0, D: 10, A: 0, Alpha: math.Pi / 2}, // Base
+		{Theta: 0, D: 0, A: 20, Alpha: 0},          // Shoulder
+		{Theta: 0, D: 0, A: 20, Alpha: 0},          // Elbow
+		{Theta: 0, D: 0, A: 0, Alpha: math.Pi / 2}, // Wrist Pitch
+		{Theta: 0, D: 5, A: 0, Alpha: -math.Pi / 2}, // Wrist Roll
+		{Theta: 0, D: 2, A: 0, Alpha: 0},            // Gripper
+	}
+	kinematicsSolver := kinematics.NewKinematicsSolver(dhParams)
+	globalArm = robot.NewArm(joints, kinematicsSolver)
 
 	// Initialize display if available
 	displayConfig := display.DisplayConfig{
@@ -192,6 +205,13 @@ func executor(input string) {
 		} else {
 			success = moveJointWithResult(args[1], args[2])
 		}
+	case "move-to-xyz":
+		if len(args) < 4 {
+			fmt.Println("Usage: move-to-xyz <x> <y> <z>")
+			success = false
+		} else {
+			success = moveXYZWithResult(args[1], args[2], args[3])
+		}
 	case "sequence":
 		success = runPickPlaceSequenceWithResult()
 	case "display":
@@ -237,6 +257,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 		{Text: "disable", Description: "Disable all motors"},
 		{Text: "home", Description: "Home the robot arm"},
 		{Text: "move", Description: "Move a joint (usage: move <joint> <position>)"},
+		{Text: "move-to-xyz", Description: "Move to Cartesian coordinate (usage: move-to-xyz <x> <y> <z>)"},
 		{Text: "sequence", Description: "Run pick and place sequence"},
 		{Text: "display", Description: "Display text on screen (usage: display <message>)"},
 		{Text: "test", Description: "Run display test"},
@@ -258,6 +279,7 @@ func showHelp() {
 	fmt.Println("  disable                   - Disable all motors")
 	fmt.Println("  home                      - Home the robot arm")
 	fmt.Println("  move <joint> <position>   - Move specific joint")
+	fmt.Println("  move-to-xyz <x> <y> <z>   - Move to a Cartesian coordinate (placeholder)")
 	fmt.Println("  sequence                  - Run pick and place sequence")
 	fmt.Println("  demo                      - Run basic movement demo")
 	fmt.Println("  joints                    - List all available joints")
@@ -276,6 +298,7 @@ func showHelp() {
 	fmt.Println("")
 	fmt.Println("Examples:")
 	fmt.Println("  move base 100             - Move base joint to position 100")
+	fmt.Println("  move-to-xyz 150.0 50.0 100.0 - Move end-effector to a 3D point")
 	fmt.Println("  display Hello World       - Display 'Hello World' on screen")
 	fmt.Println("  display status            - Show robot status on display")
 }
@@ -636,6 +659,32 @@ func enableMotorsWithResult() bool {
 		fmt.Println("✅ All motors enabled")
 		return true
 	}
+}
+
+func moveXYZWithResult(xStr, yStr, zStr string) bool {
+	if globalArm == nil {
+		fmt.Println("❌ Robot arm not initialized")
+		return false
+	}
+
+	x, errX := strconv.ParseFloat(xStr, 64)
+	y, errY := strconv.ParseFloat(yStr, 64)
+	z, errZ := strconv.ParseFloat(zStr, 64)
+
+	if errX != nil || errY != nil || errZ != nil {
+		fmt.Printf("❌ Invalid coordinates. Please provide three numbers.\n")
+		return false
+	}
+
+	fmt.Printf("🎯 Moving to Cartesian coordinate: (%.2f, %.2f, %.2f)\n", x, y, z)
+
+	if err := globalArm.MoveToXYZ(x, y, z); err != nil {
+		fmt.Printf("❌ Failed to move to coordinate: %v\n", err)
+		return false
+	}
+
+	fmt.Printf("✅ MoveToXYZ command issued (placeholder).\n")
+	return true
 }
 
 func disableMotorsWithResult() bool {

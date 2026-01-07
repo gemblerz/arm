@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gemblerz/arm/pkg/kinematics"
 	"github.com/gemblerz/arm/pkg/stepper"
 )
 
@@ -49,21 +50,23 @@ type Joint struct {
 
 // Arm represents a 6-DOF robot arm
 type Arm struct {
-	joints []Joint
-	mutex  sync.RWMutex
-	homed  bool
-	display DisplayInterface
-	isMoving bool
+	joints           []Joint
+	mutex            sync.RWMutex
+	homed            bool
+	display          DisplayInterface
+	isMoving         bool
 	currentOperation string
+	kinematicsSolver *kinematics.KinematicsSolver
 }
 
 // NewArm creates a new robot arm with the specified joints
-func NewArm(joints []Joint) *Arm {
+func NewArm(joints []Joint, solver *kinematics.KinematicsSolver) *Arm {
 	return &Arm{
-		joints: joints,
-		homed:  false,
-		isMoving: false,
+		joints:           joints,
+		homed:            false,
+		isMoving:         false,
 		currentOperation: "Initializing",
+		kinematicsSolver: solver,
 	}
 }
 
@@ -304,6 +307,45 @@ func (a *Arm) ExecuteSequence(sequence []map[string]int, delays []time.Duration)
 	return nil
 }
 
+// MoveToXYZ moves the arm's end-effector to a target Cartesian coordinate.
+// This is a placeholder for the full inverse kinematics implementation.
+func (a *Arm) MoveToXYZ(x, y, z float64) error {
+	if a.kinematicsSolver == nil {
+		return fmt.Errorf("kinematics solver is not initialized")
+	}
+
+	fmt.Printf("Attempting to move to Cartesian coordinate: (%.2f, %.2f, %.2f)\n", x, y, z)
+
+	// TODO:
+	// 1. Convert current motor positions (steps) to joint angles (radians).
+	// 2. Use inverse kinematics to calculate the target joint angles for the given x, y, z.
+	// 3. Convert target joint angles back to motor steps.
+	// 4. Command the motors to move to the new step positions using MoveJoints.
+
+	fmt.Println("Placeholder: Inverse kinematics calculation not yet implemented.")
+	return nil
+}
+
+// GetCurrentCartesianPosition calculates and returns the current end-effector position.
+// This is a placeholder for the full forward kinematics implementation.
+func (a *Arm) GetCurrentCartesianPosition() (kinematics.CartesianPoint, error) {
+	if a.kinematicsSolver == nil {
+		return kinematics.CartesianPoint{}, fmt.Errorf("kinematics solver is not initialized")
+	}
+
+	// TODO:
+	// 1. Get current motor positions (steps) for all joints.
+	// 2. Convert these step positions to joint angles (radians).
+	//    This will require knowing the steps-per-degree for each motor.
+	// 3. Pass the joint angles to the forward kinematics solver.
+
+	// Using placeholder joint angles for now.
+	placeholderAngles := []float64{0, 0, 0, 0, 0, 0}
+	currentPos := a.kinematicsSolver.ForwardKinematics(placeholderAngles)
+
+	return currentPos, nil
+}
+
 // GetStatus returns a formatted status of the entire arm
 func (a *Arm) GetStatus() string {
 	a.mutex.RLock()
@@ -321,6 +363,16 @@ func (a *Arm) GetStatus() string {
 			joint.ID, enabled, positions[joint.ID], joint.MinPos, joint.MaxPos)
 	}
 	
+	// Add Cartesian position to the status if solver is available
+	if a.kinematicsSolver != nil {
+		pos, err := a.GetCurrentCartesianPosition()
+		if err != nil {
+			status += fmt.Sprintf("  End-Effector (X,Y,Z): Error - %v\n", err)
+		} else {
+			status += fmt.Sprintf("  End-Effector (X,Y,Z): (%.2f, %.2f, %.2f) (placeholder)\n", pos.X, pos.Y, pos.Z)
+		}
+	}
+
 	return status
 }
 
