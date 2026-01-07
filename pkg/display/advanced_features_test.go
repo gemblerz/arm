@@ -1,6 +1,7 @@
 package display
 
 import (
+	"golang.org/x/image/font"
 	"testing"
 	"time"
 )
@@ -14,11 +15,13 @@ type MockDisplay struct {
 }
 
 func NewMockDisplay() *MockDisplay {
-	return &MockDisplay{
+	md := &MockDisplay{
 		width:  128,
 		height: 64,
 		pixels: make([][]bool, 64),
 	}
+	md.init()
+	return md
 }
 
 func (md *MockDisplay) init() {
@@ -29,27 +32,31 @@ func (md *MockDisplay) init() {
 
 func (md *MockDisplay) GetWidth() int  { return md.width }
 func (md *MockDisplay) GetHeight() int { return md.height }
-func (md *MockDisplay) Clear() {
+func (md *MockDisplay) Clear() error {
 	md.init()
 	md.clear = true
+	return nil
 }
-func (md *MockDisplay) Display() {}
+func (md *MockDisplay) Display() error {
+	return nil
+}
 func (md *MockDisplay) SetPixel(x, y int, on bool) {
-	if md.pixels == nil {
-		md.init()
-	}
 	if x >= 0 && x < md.width && y >= 0 && y < md.height {
 		md.pixels[y][x] = on
 	}
 }
-func (md *MockDisplay) DrawText(x, y int, text string, font interface{}) {}
-func (md *MockDisplay) SetTextColor(white bool)                              {}
-func (md *MockDisplay) SetTextSize(size int)                                 {}
+func (md *MockDisplay) DrawText(text string, x, y int, fontFace font.Face) {}
+func (md *MockDisplay) SetTextColor(white bool)                            {}
+func (md *MockDisplay) SetTextSize(size int)                               {}
 func (md *MockDisplay) DrawLine(x0, y0, x1, y1 int)                         {}
 func (md *MockDisplay) DrawRect(x, y, width, height int)                     {}
 func (md *MockDisplay) FillRect(x, y, width, height int)                     {}
 func (md *MockDisplay) DrawCircle(x, y, radius int)                          {}
 func (md *MockDisplay) Close() error                                         { return nil }
+func (md *MockDisplay) Initialize() error                                    { return nil }
+func (md *MockDisplay) DrawProgressBar(x, y, width, height int, progress float64) {}
+func (md *MockDisplay) Update() error                                        { return nil }
+func (md *MockDisplay) DrawRectangle(x, y, width, height int, filled bool)   {}
 
 func TestInteractiveDisplay(t *testing.T) {
 	mockDisplay := NewMockDisplay()
