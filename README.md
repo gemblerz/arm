@@ -122,6 +122,15 @@ PYTHONPATH=. python3 -m unittest discover -s ros2_modules/tests -v
 
 ---
 
+## Docker Image Tags (GHCR)
+
+The CI workflow publishes module images to `ghcr.io/<owner>/<module>` with:
+- `sha-<commit>`: immutable build artifact
+- `pr-<number>`: pull request preview image
+- `<release-tag>` and `latest`: published release images
+
+---
+
 ## File Layout
 
 ```text

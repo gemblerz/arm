@@ -19,7 +19,7 @@ def format_display_lines(status: dict[str, Any], sequence_state: str = "") -> li
     flags = "".join(
         [
             _to_bool_flag(status.get("is_homed"), "H", "-"),
-            _to_bool_flag(status.get("is_enabled", True), "E", "-"),
+            _to_bool_flag(status.get("is_enabled"), "E", "-"),
             _to_bool_flag(status.get("is_moving"), "M", "-"),
         ]
     )

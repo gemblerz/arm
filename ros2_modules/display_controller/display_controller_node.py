@@ -25,11 +25,19 @@ class DisplayControllerNode(Node):
         self.get_logger().info("Display controller started")
 
     def _on_status(self, msg: String) -> None:
-        self._latest_status = json.loads(msg.data)
+        try:
+            self._latest_status = json.loads(msg.data)
+        except json.JSONDecodeError:
+            self.get_logger().error("Invalid JSON on /arm/status")
+            return
         self._refresh()
 
     def _on_sequence_status(self, msg: String) -> None:
-        payload = json.loads(msg.data)
+        try:
+            payload = json.loads(msg.data)
+        except json.JSONDecodeError:
+            self.get_logger().error("Invalid JSON on /arm/sequence_status")
+            return
         self._sequence_state = str(payload.get("state", ""))
         self._refresh()
 

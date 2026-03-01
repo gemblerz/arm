@@ -7,7 +7,7 @@ class TestDisplayFormatter(unittest.TestCase):
     def test_formats_default_status(self) -> None:
         lines = format_display_lines({})
         self.assertEqual(lines[0], "ARM STATUS")
-        self.assertEqual(lines[1], "STS:-E-")
+        self.assertEqual(lines[1], "STS:---")
         self.assertEqual(lines[2], "B:  0.0")
 
     def test_formats_with_sequence_state(self) -> None:
