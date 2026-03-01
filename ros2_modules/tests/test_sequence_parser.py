@@ -9,7 +9,7 @@ class TestSequenceParser(unittest.TestCase):
         self.assertEqual(cmd.action, "home")
         self.assertIsNone(cmd.target)
 
-    def test_parse_cartesian_with_cartician_alias(self) -> None:
+    def test_parse_cartesian_with_legacy_typo_alias(self) -> None:
         cmd = parse_command(
             {"command": "move_cartician", "target": {"x": 0.1, "y": 0.2, "z": 0.3}}
         )

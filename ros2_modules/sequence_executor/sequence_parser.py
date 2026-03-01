@@ -21,6 +21,8 @@ def parse_command(payload: dict) -> ParsedCommand:
     command = str(payload.get("command", "")).strip().lower()
     if command == "home":
         return ParsedCommand(action="home")
+    # Keep the legacy "move_cartician" typo alias for backwards compatibility with
+    # existing command producers.
     if command in {"move_cartesian", "move_cartician"}:
         target = payload.get("target", {})
         return ParsedCommand(

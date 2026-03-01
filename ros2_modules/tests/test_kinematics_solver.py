@@ -20,6 +20,11 @@ class TestRobotControllerKinematics(unittest.TestCase):
         self.assertEqual(result.joints["shoulder"], 90.0)
         self.assertEqual(result.joints["elbow"], 90.0)
 
+    def test_solve_clamps_low_z(self) -> None:
+        solver = RobotControllerKinematics(max_reach_xy=0.8)
+        result = solver.solve(CartesianTarget(x=0.1, y=0.1, z=-1.0))
+        self.assertEqual(result.joints["elbow"], 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()
