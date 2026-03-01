@@ -1,0 +1,25 @@
+services:
+  sequence-executor:
+    build:
+      context: .
+      dockerfile: ros2_modules/sequence_executor/Dockerfile
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-42}
+
+  kinematics-controller:
+    build:
+      context: .
+      dockerfile: ros2_modules/kinematics_controller/Dockerfile
+    depends_on:
+      - sequence-executor
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-42}
+
+  status-bridge:
+    build:
+      context: .
+      dockerfile: ros2_modules/status_bridge/Dockerfile
+    depends_on:
+      - kinematics-controller
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-42}
