@@ -23,3 +23,12 @@ services:
       - kinematics-controller
     environment:
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-42}
+
+  display-controller:
+    build:
+      context: .
+      dockerfile: ros2_modules/display_controller/Dockerfile
+    depends_on:
+      - status-bridge
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-42}
